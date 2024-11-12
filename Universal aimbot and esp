@@ -1,4 +1,4 @@
--- Load required services
+-- Load Required Services
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
@@ -14,12 +14,12 @@ local function sendNotification(title, text, duration)
     })
 end
 
--- Main GUI Creation
+-- Create Main GUI
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "CustomCheatGUI"
 ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
--- Main Frame for GUI
+-- Create Main Frame
 local MainFrame = Instance.new("Frame")
 MainFrame.Size = UDim2.new(0, 400, 0, 500)
 MainFrame.Position = UDim2.new(0.5, -200, 0.5, -250)
@@ -33,41 +33,52 @@ local UICorner = Instance.new("UICorner")
 UICorner.CornerRadius = UDim.new(0, 10)
 UICorner.Parent = MainFrame
 
--- Tab Buttons
+-- Title Label
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Size = UDim2.new(1, 0, 0, 40)
+TitleLabel.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+TitleLabel.Text = "21 Cheats"
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.TextColor3 = Color3.new(1, 1, 1)
+TitleLabel.TextSize = 24
+TitleLabel.Parent = MainFrame
+
+-- Create Tab Buttons Frame
 local TabFrame = Instance.new("Frame")
 TabFrame.Size = UDim2.new(1, 0, 0, 40)
+TabFrame.Position = UDim2.new(0, 0, 0, 40)
 TabFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 TabFrame.Parent = MainFrame
 
-local MainTabButton = Instance.new("TextButton")
-MainTabButton.Size = UDim2.new(0, 200, 0, 40)
-MainTabButton.Text = "Main (Aimbot)"
-MainTabButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-MainTabButton.TextColor3 = Color3.new(1, 1, 1)
-MainTabButton.Parent = TabFrame
+local function createTabButton(name, position)
+    local Button = Instance.new("TextButton")
+    Button.Size = UDim2.new(0, 200, 0, 40)
+    Button.Position = position
+    Button.Text = name
+    Button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    Button.TextColor3 = Color3.new(1, 1, 1)
+    Button.Font = Enum.Font.Gotham
+    Button.TextSize = 16
+    Button.Parent = TabFrame
+    return Button
+end
 
-local VisualTabButton = Instance.new("TextButton")
-VisualTabButton.Size = UDim2.new(0, 200, 0, 40)
-VisualTabButton.Position = UDim2.new(0, 200, 0, 0)
-VisualTabButton.Text = "Visual (ESP)"
-VisualTabButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-VisualTabButton.TextColor3 = Color3.new(1, 1, 1)
-VisualTabButton.Parent = TabFrame
+local MainTabButton = createTabButton("Main (Aimbot)", UDim2.new(0, 0, 0, 0))
+local VisualTabButton = createTabButton("Visual (ESP)", UDim2.new(0, 200, 0, 0))
 
--- Tab Pages
-local MainPage = Instance.new("Frame")
-MainPage.Size = UDim2.new(1, 0, 1, -40)
-MainPage.Position = UDim2.new(0, 0, 0, 40)
-MainPage.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-MainPage.Parent = MainFrame
-MainPage.Visible = true
+-- Create Tab Pages
+local function createPage(parent, visible)
+    local Page = Instance.new("Frame")
+    Page.Size = UDim2.new(1, 0, 1, -80)
+    Page.Position = UDim2.new(0, 0, 0, 80)
+    Page.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    Page.Visible = visible
+    Page.Parent = parent
+    return Page
+end
 
-local VisualPage = Instance.new("Frame")
-VisualPage.Size = UDim2.new(1, 0, 1, -40)
-VisualPage.Position = UDim2.new(0, 0, 0, 40)
-VisualPage.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-VisualPage.Parent = MainFrame
-VisualPage.Visible = false
+local MainPage = createPage(MainFrame, true)
+local VisualPage = createPage(MainFrame, false)
 
 -- Tab Switching Logic
 MainTabButton.MouseButton1Click:Connect(function()
@@ -81,21 +92,21 @@ VisualTabButton.MouseButton1Click:Connect(function()
 end)
 
 -- Main Tab Content for Aimbot
-local AimbotKeyLabel = Instance.new("TextLabel")
-AimbotKeyLabel.Size = UDim2.new(0, 300, 0, 30)
-AimbotKeyLabel.Position = UDim2.new(0.1, 0, 0.1, 0)
-AimbotKeyLabel.Text = "Press a key to set Aimbot Toggle Key"
-AimbotKeyLabel.TextColor3 = Color3.new(1, 1, 1)
-AimbotKeyLabel.BackgroundTransparency = 1
-AimbotKeyLabel.Parent = MainPage
+local function createTextLabel(parent, position, text)
+    local Label = Instance.new("TextLabel")
+    Label.Size = UDim2.new(0, 300, 0, 30)
+    Label.Position = position
+    Label.Text = text
+    Label.TextColor3 = Color3.new(1, 1, 1)
+    Label.Font = Enum.Font.Gotham
+    Label.TextSize = 14
+    Label.BackgroundTransparency = 1
+    Label.Parent = parent
+    return Label
+end
 
-local CurrentKeyLabel = Instance.new("TextLabel")
-CurrentKeyLabel.Size = UDim2.new(0, 300, 0, 30)
-CurrentKeyLabel.Position = UDim2.new(0.1, 0, 0.2, 0)
-CurrentKeyLabel.Text = "Current Aimbot Key: [Not Set]"
-CurrentKeyLabel.TextColor3 = Color3.new(1, 1, 1)
-CurrentKeyLabel.BackgroundTransparency = 1
-CurrentKeyLabel.Parent = MainPage
+local AimbotKeyLabel = createTextLabel(MainPage, UDim2.new(0.1, 0, 0.1, 0), "Press a key to set Aimbot Toggle Key")
+local CurrentKeyLabel = createTextLabel(MainPage, UDim2.new(0.1, 0, 0.2, 0), "Current Aimbot Key: [Not Set]")
 
 local selectedAimbotKey = nil
 
@@ -126,5 +137,13 @@ UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
     end
 end)
 
--- Notify script load success
+-- Visual (ESP) Features Placeholder
+local function createVisualFeature()
+    -- Placeholder for ESP functionality (e.g., player outlines, distance lines, boxes)
+    createTextLabel(VisualPage, UDim2.new(0.1, 0, 0.1, 0), "ESP Features Coming Soon...")
+end
+
+createVisualFeature()
+
+-- Notify Script Load Success
 sendNotification("Script Loaded", "Welcome! Use Insert key to toggle GUI.")
