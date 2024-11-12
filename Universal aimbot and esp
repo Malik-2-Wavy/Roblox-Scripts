@@ -51,6 +51,7 @@ TabFrame.Position = UDim2.new(0, 0, 0, 0)
 TabFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 TabFrame.Parent = MainFrame
 
+-- Helper function to create tab buttons
 local function createTabButton(name, position, iconID)
     local Button = Instance.new("TextButton")
     Button.Size = UDim2.new(0, 200, 0, 50)
@@ -69,7 +70,7 @@ local function createTabButton(name, position, iconID)
     Icon.Size = UDim2.new(0, 20, 0, 20)
     Icon.Position = UDim2.new(0, 10, 0, 15)
     Icon.BackgroundTransparency = 1
-    Icon.Image = "rbxassetid://" .. iconID  -- You can use custom icons here
+    Icon.Image = "rbxassetid://" .. iconID  -- Custom icons
     Icon.Parent = Button
 
     -- Button Hover Effect
@@ -84,7 +85,7 @@ local function createTabButton(name, position, iconID)
     return Button
 end
 
--- Add icons and create buttons
+-- Add icons and create buttons for the tabs
 local MainTabButton = createTabButton("Main (Aimbot)", UDim2.new(0, 0, 0, 0), "1234567890")  -- Replace with actual icon ID
 local VisualTabButton = createTabButton("Visual (ESP)", UDim2.new(0, 200, 0, 0), "0987654321")  -- Replace with actual icon ID
 
@@ -143,7 +144,7 @@ local function drawESP(player)
     local box = Instance.new("BoxHandleAdornment")
     box.Size = player.Character.HumanoidRootPart.Size * 1.5
     box.CFrame = player.Character.HumanoidRootPart.CFrame
-    box.Color3 = Color3.fromRGB(255, 0, 0)  -- Red Box
+    box.Color3 = Color3.fromRGB(255, 0, 0)  -- Red Box for normal players
     box.Adornee = player.Character
     box.Parent = game.Workspace
 
@@ -151,9 +152,9 @@ local function drawESP(player)
     if player:FindFirstChild("Humanoid") then
         local humanoid = player.Humanoid
         if humanoid.Health <= 0 then
-            box.Color3 = Color3.fromRGB(0, 0, 255)  -- Blue for Dead
+            box.Color3 = Color3.fromRGB(0, 0, 255)  -- Blue for Dead players
         elseif humanoid.Health > humanoid.MaxHealth then
-            box.Color3 = Color3.fromRGB(255, 255, 0)  -- Yellow for God Mode
+            box.Color3 = Color3.fromRGB(255, 255, 0)  -- Yellow for God Mode players
         end
     end
 end
