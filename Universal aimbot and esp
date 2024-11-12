@@ -1,16 +1,22 @@
--- Settings
-local Teams = game:GetService("Teams")
+-- Load required services
 local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
 local UserInputService = game:GetService("UserInputService")
 local StarterGui = game:GetService("StarterGui")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
 
--- Check if we have a valid team system (optional, since not all games have teams)
-local myTeam = LocalPlayer.Team
+-- Notification Function
+local function sendNotification(title, text, duration)
+    StarterGui:SetCore("SendNotification", {
+        Title = title;
+        Text = text;
+        Duration = duration or 5; -- Default duration of 5 seconds
+    })
+end
 
--- Create GUI
+-- GUI Creation
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "CheatGUI"
+ScreenGui.Name = "21 Cheats"
 ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
 local MainFrame = Instance.new("Frame")
@@ -20,7 +26,6 @@ MainFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 MainFrame.Parent = ScreenGui
 MainFrame.Visible = false
 
--- Buttons for each function
 local AimbotButton = Instance.new("TextButton")
 AimbotButton.Size = UDim2.new(0, 200, 0, 50)
 AimbotButton.Position = UDim2.new(0.5, -100, 0, 10)
@@ -33,109 +38,99 @@ ESPButton.Position = UDim2.new(0.5, -100, 0, 70)
 ESPButton.Text = "Toggle ESP"
 ESPButton.Parent = MainFrame
 
--- Keybind for GUI Toggle (Press INS)
+-- Toggle GUI Visibility with Insert Key
 local guiVisible = false
 UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
     if input.KeyCode == Enum.KeyCode.Insert and not gameProcessedEvent then
         guiVisible = not guiVisible
         MainFrame.Visible = guiVisible
+        sendNotification("GUI Toggle", guiVisible and "GUI Shown" or "GUI Hidden")
     end
 end)
 
--- Helper function to find the closest enemy
+-- Enemy Detection Function
 local function getEnemies()
     local enemies = {}
     for _, player in pairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            -- Handle Free-for-All or Team Modes
-            if (myTeam and player.Team ~= myTeam) or not myTeam then
-                table.insert(enemies, player.Character)
-            end
+        if player ~= LocalPlayer and player.Team ~= LocalPlayer.Team and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            table.insert(enemies, player.Character)
         end
     end
     return enemies
 end
 
--- Aimbot
+-- Aimbot Functionality
 local aimbotEnabled = false
 AimbotButton.MouseButton1Click:Connect(function()
     aimbotEnabled = not aimbotEnabled
-    if aimbotEnabled then
-        while aimbotEnabled do
-            wait(0.1)
-            local enemies = getEnemies()
-            if #enemies > 0 then
-                local closestEnemy = enemies[1]
-                local shortestDistance = (closestEnemy.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
-                for _, enemy in pairs(enemies) do
-                    local distance = (enemy.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
-                    if distance < shortestDistance then
-                        closestEnemy = enemy
-                        shortestDistance = distance
-                    end
+    sendNotification("Aimbot", aimbotEnabled and "Aimbot Enabled" or "Aimbot Disabled")
+end)
+
+RunService.RenderStepped:Connect(function()
+    if aimbotEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local enemies = getEnemies()
+        if #enemies > 0 then
+            local closestEnemy = enemies[1]
+            local shortestDistance = (closestEnemy.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+            for _, enemy in pairs(enemies) do
+                local distance = (enemy.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+                if distance < shortestDistance then
+                    closestEnemy = enemy
+                    shortestDistance = distance
                 end
-                -- Aimbot: Aim at the closest enemy's HumanoidRootPart
-                LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(closestEnemy.HumanoidRootPart.Position)
             end
+            -- Aimbot: Smooth aiming using CFrame.lookAt
+            LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.lookAt(LocalPlayer.Character.HumanoidRootPart.Position, closestEnemy.HumanoidRootPart.Position)
         end
     end
 end)
 
--- ESP (Wallhack)
+-- ESP Functionality
 local espEnabled = false
 local function createESP(player)
-    local espBox = Instance.new("BillboardGui")
-    espBox.Parent = player.Character.HumanoidRootPart
-    espBox.Size = UDim2.new(0, 10, 0, 10)
-    espBox.Adornee = player.Character.HumanoidRootPart
-    espBox.AlwaysOnTop = true
-    espBox.StudsOffset = Vector3.new(0, 2, 0)
-    espBox.Enabled = true
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        local existingESP = player.Character:FindFirstChild("ESPBox")
+        if not existingESP then
+            local espBox = Instance.new("BillboardGui")
+            espBox.Name = "ESPBox"
+            espBox.Size = UDim2.new(1, 0, 1, 0)
+            espBox.Adornee = player.Character.HumanoidRootPart
+            espBox.AlwaysOnTop = true
+            espBox.Parent = player.Character
+
+            local frame = Instance.new("Frame")
+            frame.Size = UDim2.new(1, 0, 1, 0)
+            frame.BackgroundColor3 = Color3.new(1, 0, 0)
+            frame.BackgroundTransparency = 0.5
+            frame.Parent = espBox
+        end
+    end
 end
 
 ESPButton.MouseButton1Click:Connect(function()
     espEnabled = not espEnabled
+    sendNotification("ESP", espEnabled and "ESP Enabled" or "ESP Disabled")
+end)
+
+RunService.RenderStepped:Connect(function()
     if espEnabled then
-        while espEnabled do
-            wait(0.1)
-            local enemies = getEnemies()
-            for _, player in pairs(enemies) do
-                if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                    createESP(player)
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer and player.Team ~= LocalPlayer.Team then
+                createESP(player)
+            end
+        end
+    else
+        for _, player in pairs(Players:GetPlayers()) do
+            if player.Character then
+                local existingESP = player.Character:FindFirstChild("ESPBox")
+                if existingESP then
+                    existingESP:Destroy()
                 end
             end
         end
     end
 end)
 
--- Function to display notification
-local function sendNotification(title, text)
-    StarterGui:SetCore("SendNotification", {
-        Title = title;
-        Text = text;
-        Duration = 5;
-    })
-end
-
--- Notify user when the script is loaded successfully
+-- Initial Notification
 sendNotification("Script Loaded", "Have Fun using 21 Cheats!")
 
--- Clean up ESP
-game:GetService("RunService").RenderStepped:Connect(function()
-    for _, player in pairs(Players:GetPlayers()) do
-        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            local espPart = player.Character:FindFirstChild("ESPPart")
-            if not espPart then
-                local newESPPart = Instance.new("Part")
-                newESPPart.Name = "ESPPart"
-                newESPPart.Size = Vector3.new(1, 1, 1)
-                newESPPart.Anchored = true
-                newESPPart.CanCollide = false
-                newESPPart.Parent = player.Character
-                newESPPart.Transparency = 0.5
-                newESPPart.Color = Color3.fromRGB(255, 0, 0)
-                newESPPart.CFrame = player.Character.HumanoidRootPart.CFrame
-            end
-        end
-    end
-end)
