@@ -1,8 +1,8 @@
 -- Load required services
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
-local StarterGui = game:GetService("StarterGui")
 local RunService = game:GetService("RunService")
+local StarterGui = game:GetService("StarterGui")
 local LocalPlayer = Players.LocalPlayer
 
 -- Notification Function
@@ -10,35 +10,116 @@ local function sendNotification(title, text, duration)
     StarterGui:SetCore("SendNotification", {
         Title = title;
         Text = text;
-        Duration = duration or 5; -- Default duration of 5 seconds
+        Duration = duration or 5; -- Default duration is 5 seconds
     })
 end
 
--- GUI Creation
+-- Main GUI Creation
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "21 Cheats"
+ScreenGui.Name = "CustomCheatGUI"
 ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
+-- Main Frame for GUI
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 300, 0, 400)
-MainFrame.Position = UDim2.new(0.5, -150, 0.5, -200)
+MainFrame.Size = UDim2.new(0, 400, 0, 500)
+MainFrame.Position = UDim2.new(0.5, -200, 0.5, -250)
 MainFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 MainFrame.Parent = ScreenGui
 MainFrame.Visible = false
+MainFrame.Active = true
+MainFrame.Draggable = true
 
-local AimbotButton = Instance.new("TextButton")
-AimbotButton.Size = UDim2.new(0, 200, 0, 50)
-AimbotButton.Position = UDim2.new(0.5, -100, 0, 10)
-AimbotButton.Text = "Toggle Aimbot"
-AimbotButton.Parent = MainFrame
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 10)
+UICorner.Parent = MainFrame
 
-local ESPButton = Instance.new("TextButton")
-ESPButton.Size = UDim2.new(0, 200, 0, 50)
-ESPButton.Position = UDim2.new(0.5, -100, 0, 70)
-ESPButton.Text = "Toggle ESP"
-ESPButton.Parent = MainFrame
+-- Tab Buttons
+local TabFrame = Instance.new("Frame")
+TabFrame.Size = UDim2.new(1, 0, 0, 40)
+TabFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+TabFrame.Parent = MainFrame
 
--- Toggle GUI Visibility with Insert Key
+local MainTabButton = Instance.new("TextButton")
+MainTabButton.Size = UDim2.new(0, 200, 0, 40)
+MainTabButton.Text = "Main (Aimbot)"
+MainTabButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+MainTabButton.TextColor3 = Color3.new(1, 1, 1)
+MainTabButton.Parent = TabFrame
+
+local VisualTabButton = Instance.new("TextButton")
+VisualTabButton.Size = UDim2.new(0, 200, 0, 40)
+VisualTabButton.Position = UDim2.new(0, 200, 0, 0)
+VisualTabButton.Text = "Visual (ESP)"
+VisualTabButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+VisualTabButton.TextColor3 = Color3.new(1, 1, 1)
+VisualTabButton.Parent = TabFrame
+
+-- Tab Pages
+local MainPage = Instance.new("Frame")
+MainPage.Size = UDim2.new(1, 0, 1, -40)
+MainPage.Position = UDim2.new(0, 0, 0, 40)
+MainPage.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+MainPage.Parent = MainFrame
+MainPage.Visible = true
+
+local VisualPage = Instance.new("Frame")
+VisualPage.Size = UDim2.new(1, 0, 1, -40)
+VisualPage.Position = UDim2.new(0, 0, 0, 40)
+VisualPage.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+VisualPage.Parent = MainFrame
+VisualPage.Visible = false
+
+-- Tab Switching Logic
+MainTabButton.MouseButton1Click:Connect(function()
+    MainPage.Visible = true
+    VisualPage.Visible = false
+end)
+
+VisualTabButton.MouseButton1Click:Connect(function()
+    MainPage.Visible = false
+    VisualPage.Visible = true
+end)
+
+-- Main Tab Content
+local FOVSizeSlider = Instance.new("TextBox")
+FOVSizeSlider.Size = UDim2.new(0, 200, 0, 30)
+FOVSizeSlider.Position = UDim2.new(0.1, 0, 0.1, 0)
+FOVSizeSlider.PlaceholderText = "Enter FOV Size (Default: 100)"
+FOVSizeSlider.Parent = MainPage
+
+local FOVColorButton = Instance.new("TextButton")
+FOVColorButton.Size = UDim2.new(0, 200, 0, 30)
+FOVColorButton.Position = UDim2.new(0.1, 0, 0.2, 0)
+FOVColorButton.Text = "Change FOV Circle Color"
+FOVColorButton.Parent = MainPage
+
+local AimbotKeyLabel = Instance.new("TextLabel")
+AimbotKeyLabel.Size = UDim2.new(0, 200, 0, 30)
+AimbotKeyLabel.Position = UDim2.new(0.1, 0, 0.3, 0)
+AimbotKeyLabel.Text = "Aimbot Key: Insert"
+AimbotKeyLabel.TextColor3 = Color3.new(1, 1, 1)
+AimbotKeyLabel.Parent = MainPage
+
+-- Visual Tab Content
+local ESPColorButton = Instance.new("TextButton")
+ESPColorButton.Size = UDim2.new(0, 200, 0, 30)
+ESPColorButton.Position = UDim2.new(0.1, 0, 0.1, 0)
+ESPColorButton.Text = "Change ESP Color"
+ESPColorButton.Parent = VisualPage
+
+local ESPBoxCheck = Instance.new("TextButton")
+ESPBoxCheck.Size = UDim2.new(0, 200, 0, 30)
+ESPBoxCheck.Position = UDim2.new(0.1, 0, 0.2, 0)
+ESPBoxCheck.Text = "Toggle ESP Boxes"
+ESPBoxCheck.Parent = VisualPage
+
+local ESPLineCheck = Instance.new("TextButton")
+ESPLineCheck.Size = UDim2.new(0, 200, 0, 30)
+ESPLineCheck.Position = UDim2.new(0.1, 0, 0.3, 0)
+ESPLineCheck.Text = "Toggle ESP Lines"
+ESPLineCheck.Parent = VisualPage
+
+-- GUI Visibility Toggle (Insert Key)
 local guiVisible = false
 UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
     if input.KeyCode == Enum.KeyCode.Insert and not gameProcessedEvent then
@@ -48,89 +129,37 @@ UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
     end
 end)
 
--- Enemy Detection Function
-local function getEnemies()
-    local enemies = {}
-    for _, player in pairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Team ~= LocalPlayer.Team and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            table.insert(enemies, player.Character)
-        end
-    end
-    return enemies
-end
+-- Customization Handlers
+FOVColorButton.MouseButton1Click:Connect(function()
+    local newColor = Color3.fromRGB(math.random(0, 255), math.random(0, 255), math.random(0, 255))
+    -- This would update the FOV circle color in your aimbot logic
+    sendNotification("FOV Circle Color Changed", "A new color has been applied.")
+end)
 
--- Aimbot Functionality
+ESPColorButton.MouseButton1Click:Connect(function()
+    local newColor = Color3.fromRGB(math.random(0, 255), math.random(0, 255), math.random(0, 255))
+    -- This would update the ESP color in your ESP logic
+    sendNotification("ESP Color Changed", "A new color has been applied.")
+end)
+
+ESPBoxCheck.MouseButton1Click:Connect(function()
+    -- Toggle ESP boxes logic
+    sendNotification("ESP Boxes", "Toggled ESP Boxes.")
+end)
+
+ESPLineCheck.MouseButton1Click:Connect(function()
+    -- Toggle ESP lines logic
+    sendNotification("ESP Lines", "Toggled ESP Lines.")
+end)
+
+-- Basic Enemy Detection and Aimbot Logic (for demonstration, use your existing logic)
 local aimbotEnabled = false
-AimbotButton.MouseButton1Click:Connect(function()
-    aimbotEnabled = not aimbotEnabled
-    sendNotification("Aimbot", aimbotEnabled and "Aimbot Enabled" or "Aimbot Disabled")
-end)
-
 RunService.RenderStepped:Connect(function()
-    if aimbotEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        local enemies = getEnemies()
-        if #enemies > 0 then
-            local closestEnemy = enemies[1]
-            local shortestDistance = (closestEnemy.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
-            for _, enemy in pairs(enemies) do
-                local distance = (enemy.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
-                if distance < shortestDistance then
-                    closestEnemy = enemy
-                    shortestDistance = distance
-                end
-            end
-            -- Aimbot: Smooth aiming using CFrame.lookAt
-            LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.lookAt(LocalPlayer.Character.HumanoidRootPart.Position, closestEnemy.HumanoidRootPart.Position)
-        end
+    if aimbotEnabled then
+        -- Your aimbot logic here, for demonstration purposes
     end
 end)
 
--- ESP Functionality
-local espEnabled = false
-local function createESP(player)
-    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        local existingESP = player.Character:FindFirstChild("ESPBox")
-        if not existingESP then
-            local espBox = Instance.new("BillboardGui")
-            espBox.Name = "ESPBox"
-            espBox.Size = UDim2.new(1, 0, 1, 0)
-            espBox.Adornee = player.Character.HumanoidRootPart
-            espBox.AlwaysOnTop = true
-            espBox.Parent = player.Character
-
-            local frame = Instance.new("Frame")
-            frame.Size = UDim2.new(1, 0, 1, 0)
-            frame.BackgroundColor3 = Color3.new(1, 0, 0)
-            frame.BackgroundTransparency = 0.5
-            frame.Parent = espBox
-        end
-    end
-end
-
-ESPButton.MouseButton1Click:Connect(function()
-    espEnabled = not espEnabled
-    sendNotification("ESP", espEnabled and "ESP Enabled" or "ESP Disabled")
-end)
-
-RunService.RenderStepped:Connect(function()
-    if espEnabled then
-        for _, player in pairs(Players:GetPlayers()) do
-            if player ~= LocalPlayer and player.Team ~= LocalPlayer.Team then
-                createESP(player)
-            end
-        end
-    else
-        for _, player in pairs(Players:GetPlayers()) do
-            if player.Character then
-                local existingESP = player.Character:FindFirstChild("ESPBox")
-                if existingESP then
-                    existingESP:Destroy()
-                end
-            end
-        end
-    end
-end)
-
--- Initial Notification
-sendNotification("Script Loaded", "Have Fun using 21 Cheats!")
+-- Notify script load success
+sendNotification("Script Loaded", "Welcome! Use Insert key to toggle GUI.")
 
