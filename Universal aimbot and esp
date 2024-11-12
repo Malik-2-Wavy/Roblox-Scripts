@@ -1,199 +1,79 @@
--- Roblox Script with Aimbot, ESP (with boxes and lines), FOV Circle, and GUI Control
-
-local Players = game:GetService("Players")
-local Teams = game:GetService("Teams")
-local Camera = game:GetService("Workspace").CurrentCamera
-local UserInputService = game:GetService("UserInputService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Player = Players.LocalPlayer
-local RunService = game:GetService("RunService")
-
--- Customize these team names based on your game
-local playerTeamName = "YourTeamName"  -- Your team name
-local enemyTeamName = "EnemyTeamName"  -- Enemy team name
-
--- GUI Setup
+-- Create the GUI
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "ESP_GUI"
-ScreenGui.Parent = Player:WaitForChild("PlayerGui")
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 
+-- Make the main frame of the GUI
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 300, 0, 300)
+MainFrame.Position = UDim2.new(0.5, -150, 0.5, -150)
+MainFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+MainFrame.Parent = ScreenGui
+MainFrame.Visible = false  -- Initially hidden
+
+-- Add a button to toggle ESP
 local ToggleESPButton = Instance.new("TextButton")
 ToggleESPButton.Size = UDim2.new(0, 200, 0, 50)
-ToggleESPButton.Position = UDim2.new(0, 10, 0, 10)
+ToggleESPButton.Position = UDim2.new(0.5, -100, 0, 10)
 ToggleESPButton.Text = "Toggle ESP"
-ToggleESPButton.Parent = ScreenGui
+ToggleESPButton.Parent = MainFrame
 
+-- Add a button to toggle FOV Circle
 local ToggleFOVButton = Instance.new("TextButton")
 ToggleFOVButton.Size = UDim2.new(0, 200, 0, 50)
-ToggleFOVButton.Position = UDim2.new(0, 10, 0, 70)
+ToggleFOVButton.Position = UDim2.new(0.5, -100, 0, 70)
 ToggleFOVButton.Text = "Toggle FOV Circle"
-ToggleFOVButton.Parent = ScreenGui
+ToggleFOVButton.Parent = MainFrame
 
+-- Add a button to toggle Aimbot
 local ToggleAimbotButton = Instance.new("TextButton")
 ToggleAimbotButton.Size = UDim2.new(0, 200, 0, 50)
-ToggleAimbotButton.Position = UDim2.new(0, 10, 0, 130)
+ToggleAimbotButton.Position = UDim2.new(0.5, -100, 0, 130)
 ToggleAimbotButton.Text = "Toggle Aimbot"
-ToggleAimbotButton.Parent = ScreenGui
+ToggleAimbotButton.Parent = MainFrame
 
--- Variables to track ESP, FOV, and Aimbot state
+-- Store the visibility status of the GUI
+local guiVisible = false
+
+-- Function to toggle the visibility of the GUI
+local function toggleGUI()
+    guiVisible = not guiVisible
+    MainFrame.Visible = guiVisible
+end
+
+-- Listen for the INS key press to toggle the GUI
+local UserInputService = game:GetService("UserInputService")
+
+UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
+    -- Check if the INS key (Insert key) is pressed and not processed by the game
+    if input.KeyCode == Enum.KeyCode.Insert and not gameProcessedEvent then
+        toggleGUI()
+    end
+end)
+
+-- Add your ESP, FOV, and Aimbot functionality here, for example:
 local espEnabled = false
 local fovEnabled = false
-local fovRadius = 100
-local fovColor = Color3.fromRGB(0, 255, 0)  -- FOV Circle color
-local espBoxColor = Color3.fromRGB(255, 0, 0)  -- ESP Box color
-local espLineColor = Color3.fromRGB(255, 255, 255)  -- ESP Line color
 local aimbotEnabled = false
-local targetPart = "Head"  -- Default aim part (Head or Torso)
 
--- Function to create the ESP effect (Highlight + Box + Line)
-local function createESP(character)
-    if character and character:FindFirstChild("HumanoidRootPart") then
-        -- ESP Box
-        local box = Instance.new("BoxHandleAdornment")
-        box.Name = "ESP_Box"
-        box.Adornee = character:FindFirstChild("HumanoidRootPart")
-        box.Size = character:FindFirstChild("HumanoidRootPart").Size
-        box.CFrame = character:FindFirstChild("HumanoidRootPart").CFrame
-        box.Parent = character
-        box.Color3 = espBoxColor
-        box.Transparency = 0.5
-        box.ZIndex = 10
-        box.Visible = true
-
-        -- ESP Line to FOV Circle center
-        local line = Instance.new("LineHandleAdornment")
-        line.Name = "ESP_Line"
-        line.Adornee = character:FindFirstChild("HumanoidRootPart")
-        line.Parent = character
-        line.Color3 = espLineColor
-        line.LineThickness = 0.1
-        line.Visible = true
-    end
-end
-
--- Function to remove ESP effects (box + line)
-local function removeESP(character)
-    if character then
-        local box = character:FindFirstChild("ESP_Box")
-        local line = character:FindFirstChild("ESP_Line")
-        if box then box:Destroy() end
-        if line then line:Destroy() end
-    end
-end
-
--- Function to update the ESP status
-local function updateESP()
-    for _, player in pairs(Players:GetPlayers()) do
-        if player.Team and player.Team.Name == enemyTeamName then
-            local character = player.Character
-            if espEnabled and character then
-                createESP(character)
-            elseif not espEnabled and character then
-                removeESP(character)
-            end
-        end
-    end
-end
-
--- Toggle ESP visibility
 ToggleESPButton.MouseButton1Click:Connect(function()
     espEnabled = not espEnabled
-    updateESP()
+    print("ESP Enabled:", espEnabled)
+    -- Add ESP toggle functionality here
 end)
 
--- Function to create the customizable FOV Circle
-local function createFOVCircle()
-    local fovCircle = Instance.new("Frame")
-    fovCircle.Size = UDim2.new(0, fovRadius * 2, 0, fovRadius * 2)
-    fovCircle.Position = UDim2.new(0.5, -fovRadius, 0.5, -fovRadius)
-    fovCircle.BackgroundColor3 = fovColor
-    fovCircle.BorderSizePixel = 0
-    fovCircle.AnchorPoint = Vector2.new(0.5, 0.5)
-    fovCircle.Parent = ScreenGui
-    return fovCircle
-end
-
--- Function to update the FOV Circle
-local function updateFOVCircle()
-    local fovCircle = ScreenGui:FindFirstChild("FOVCircle")
-    if fovEnabled then
-        if not fovCircle then
-            local newFOVCircle = createFOVCircle()
-            newFOVCircle.Name = "FOVCircle"
-        end
-    else
-        if fovCircle then
-            fovCircle:Destroy()
-        end
-    end
-end
-
--- Toggle FOV Circle visibility
 ToggleFOVButton.MouseButton1Click:Connect(function()
     fovEnabled = not fovEnabled
-    updateFOVCircle()
+    print("FOV Circle Enabled:", fovEnabled)
+    -- Add FOV circle toggle functionality here
 end)
 
--- Aimbot function to track and aim at enemy parts
-local function aimbot()
-    local closestTarget = nil
-    local closestDistance = math.huge
-    for _, player in pairs(Players:GetPlayers()) do
-        if player.Team and player.Team.Name == enemyTeamName then
-            local character = player.Character
-            if character and character:FindFirstChild(targetPart) then
-                local targetPartPosition = character[targetPart].Position
-                local screenPosition, onScreen = Camera:WorldToScreenPoint(targetPartPosition)
-                local distance = (Vector2.new(screenPosition.X, screenPosition.Y) - UserInputService:GetMouseLocation()).Magnitude
-                
-                -- Check if this target is the closest one to the mouse
-                if distance < closestDistance and onScreen then
-                    closestDistance = distance
-                    closestTarget = targetPartPosition
-                end
-            end
-        end
-    end
-
-    if closestTarget then
-        local direction = (closestTarget - Camera.CFrame.Position).unit
-        Camera.CFrame = CFrame.new(Camera.CFrame.Position, Camera.CFrame.Position + direction)
-    end
-end
-
--- Toggle Aimbot visibility
 ToggleAimbotButton.MouseButton1Click:Connect(function()
     aimbotEnabled = not aimbotEnabled
+    print("Aimbot Enabled:", aimbotEnabled)
+    -- Add Aimbot toggle functionality here
 end)
 
--- Update ESP continuously
-RunService.Heartbeat:Connect(function()
-    if espEnabled then
-        updateESP()
-    end
-
-    -- Perform aimbot if enabled
-    if aimbotEnabled then
-        aimbot()
-    end
-end)
-
--- Function to highlight enemy players on load
-local function highlightEnemyPlayers()
-    local playerTeam = Teams:FindFirstChild(playerTeamName)
-    local enemyTeam = Teams:FindFirstChild(enemyTeamName)
-
-    if playerTeam and enemyTeam then
-        for _, otherPlayer in pairs(Players:GetPlayers()) do
-            if otherPlayer.Team == enemyTeam then
-                local character = otherPlayer.Character
-                if character then
-                    createESP(character)
-                end
-            end
-        end
-    end
-end
 
 -- Initial call to highlight enemies
 highlightEnemyPlayers()
