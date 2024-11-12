@@ -80,44 +80,41 @@ VisualTabButton.MouseButton1Click:Connect(function()
     VisualPage.Visible = true
 end)
 
--- Main Tab Content
-local FOVSizeSlider = Instance.new("TextBox")
-FOVSizeSlider.Size = UDim2.new(0, 200, 0, 30)
-FOVSizeSlider.Position = UDim2.new(0.1, 0, 0.1, 0)
-FOVSizeSlider.PlaceholderText = "Enter FOV Size (Default: 100)"
-FOVSizeSlider.Parent = MainPage
-
-local FOVColorButton = Instance.new("TextButton")
-FOVColorButton.Size = UDim2.new(0, 200, 0, 30)
-FOVColorButton.Position = UDim2.new(0.1, 0, 0.2, 0)
-FOVColorButton.Text = "Change FOV Circle Color"
-FOVColorButton.Parent = MainPage
-
+-- Main Tab Content for Aimbot
 local AimbotKeyLabel = Instance.new("TextLabel")
-AimbotKeyLabel.Size = UDim2.new(0, 200, 0, 30)
-AimbotKeyLabel.Position = UDim2.new(0.1, 0, 0.3, 0)
-AimbotKeyLabel.Text = "Aimbot Key: Insert"
+AimbotKeyLabel.Size = UDim2.new(0, 300, 0, 30)
+AimbotKeyLabel.Position = UDim2.new(0.1, 0, 0.1, 0)
+AimbotKeyLabel.Text = "Press a key to set Aimbot Toggle Key"
 AimbotKeyLabel.TextColor3 = Color3.new(1, 1, 1)
+AimbotKeyLabel.BackgroundTransparency = 1
 AimbotKeyLabel.Parent = MainPage
 
--- Visual Tab Content
-local ESPColorButton = Instance.new("TextButton")
-ESPColorButton.Size = UDim2.new(0, 200, 0, 30)
-ESPColorButton.Position = UDim2.new(0.1, 0, 0.1, 0)
-ESPColorButton.Text = "Change ESP Color"
-ESPColorButton.Parent = VisualPage
+local CurrentKeyLabel = Instance.new("TextLabel")
+CurrentKeyLabel.Size = UDim2.new(0, 300, 0, 30)
+CurrentKeyLabel.Position = UDim2.new(0.1, 0, 0.2, 0)
+CurrentKeyLabel.Text = "Current Aimbot Key: [Not Set]"
+CurrentKeyLabel.TextColor3 = Color3.new(1, 1, 1)
+CurrentKeyLabel.BackgroundTransparency = 1
+CurrentKeyLabel.Parent = MainPage
 
-local ESPBoxCheck = Instance.new("TextButton")
-ESPBoxCheck.Size = UDim2.new(0, 200, 0, 30)
-ESPBoxCheck.Position = UDim2.new(0.1, 0, 0.2, 0)
-ESPBoxCheck.Text = "Toggle ESP Boxes"
-ESPBoxCheck.Parent = VisualPage
+local selectedAimbotKey = nil
 
-local ESPLineCheck = Instance.new("TextButton")
-ESPLineCheck.Size = UDim2.new(0, 200, 0, 30)
-ESPLineCheck.Position = UDim2.new(0.1, 0, 0.3, 0)
-ESPLineCheck.Text = "Toggle ESP Lines"
-ESPLineCheck.Parent = VisualPage
+-- Setting the Aimbot Toggle Key
+UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
+    if MainPage.Visible and not gameProcessedEvent then
+        selectedAimbotKey = input.KeyCode
+        CurrentKeyLabel.Text = "Current Aimbot Key: [" .. tostring(selectedAimbotKey) .. "]"
+    end
+end)
+
+-- Aimbot Logic with Customizable Key
+local aimbotEnabled = false
+UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
+    if input.KeyCode == selectedAimbotKey and not gameProcessedEvent then
+        aimbotEnabled = not aimbotEnabled
+        sendNotification("Aimbot Status", aimbotEnabled and "Aimbot Enabled" or "Aimbot Disabled")
+    end
+end)
 
 -- GUI Visibility Toggle (Insert Key)
 local guiVisible = false
@@ -129,37 +126,5 @@ UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
     end
 end)
 
--- Customization Handlers
-FOVColorButton.MouseButton1Click:Connect(function()
-    local newColor = Color3.fromRGB(math.random(0, 255), math.random(0, 255), math.random(0, 255))
-    -- This would update the FOV circle color in your aimbot logic
-    sendNotification("FOV Circle Color Changed", "A new color has been applied.")
-end)
-
-ESPColorButton.MouseButton1Click:Connect(function()
-    local newColor = Color3.fromRGB(math.random(0, 255), math.random(0, 255), math.random(0, 255))
-    -- This would update the ESP color in your ESP logic
-    sendNotification("ESP Color Changed", "A new color has been applied.")
-end)
-
-ESPBoxCheck.MouseButton1Click:Connect(function()
-    -- Toggle ESP boxes logic
-    sendNotification("ESP Boxes", "Toggled ESP Boxes.")
-end)
-
-ESPLineCheck.MouseButton1Click:Connect(function()
-    -- Toggle ESP lines logic
-    sendNotification("ESP Lines", "Toggled ESP Lines.")
-end)
-
--- Basic Enemy Detection and Aimbot Logic (for demonstration, use your existing logic)
-local aimbotEnabled = false
-RunService.RenderStepped:Connect(function()
-    if aimbotEnabled then
-        -- Your aimbot logic here, for demonstration purposes
-    end
-end)
-
 -- Notify script load success
 sendNotification("Script Loaded", "Welcome! Use Insert key to toggle GUI.")
-
