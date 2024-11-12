@@ -43,22 +43,17 @@ UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
 end)
 
 -- Helper function to find the closest enemy
-local function getClosestEnemy()
-    local closestEnemy = nil
-    local shortestDistance = math.huge
+local function getEnemies()
+    local enemies = {}
     for _, player in pairs(Players:GetPlayers()) do
         if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            -- Only target enemies that are not on the same team
-            if player.Team ~= myTeam then
-                local distance = (player.Character.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
-                if distance < shortestDistance then
-                    shortestDistance = distance
-                    closestEnemy = player.Character
-                end
+            -- Handle Free-for-All or Team Modes
+            if (myTeam and player.Team ~= myTeam) or not myTeam then
+                table.insert(enemies, player.Character)
             end
         end
     end
-    return closestEnemy
+    return enemies
 end
 
 -- Aimbot
@@ -68,10 +63,19 @@ AimbotButton.MouseButton1Click:Connect(function()
     if aimbotEnabled then
         while aimbotEnabled do
             wait(0.1)
-            local enemy = getClosestEnemy()
-            if enemy then
-                -- Aimbot: Aim at the enemy's HumanoidRootPart
-                LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(enemy.HumanoidRootPart.Position)
+            local enemies = getEnemies()
+            if #enemies > 0 then
+                local closestEnemy = enemies[1]
+                local shortestDistance = (closestEnemy.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+                for _, enemy in pairs(enemies) do
+                    local distance = (enemy.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+                    if distance < shortestDistance then
+                        closestEnemy = enemy
+                        shortestDistance = distance
+                    end
+                end
+                -- Aimbot: Aim at the closest enemy's HumanoidRootPart
+                LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(closestEnemy.HumanoidRootPart.Position)
             end
         end
     end
@@ -94,11 +98,10 @@ ESPButton.MouseButton1Click:Connect(function()
     if espEnabled then
         while espEnabled do
             wait(0.1)
-            for _, player in pairs(Players:GetPlayers()) do
-                if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                    if player.Team ~= myTeam then
-                        createESP(player)
-                    end
+            local enemies = getEnemies()
+            for _, player in pairs(enemies) do
+                if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    createESP(player)
                 end
             end
         end
@@ -117,10 +120,7 @@ end
 -- Notify user when the script is loaded successfully
 sendNotification("Script Loaded", "Have Fun using 21 Cheats!")
 
--- Run the script and update it dynamically for changes
--- This will make sure the script is dynamic for any in-game updates
-
--- ESP cleanup for efficiency
+-- Clean up ESP
 game:GetService("RunService").RenderStepped:Connect(function()
     for _, player in pairs(Players:GetPlayers()) do
         if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
