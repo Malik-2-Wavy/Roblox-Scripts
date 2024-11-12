@@ -115,8 +115,19 @@ VisualTabButton.MouseButton1Click:Connect(function()
 end)
 
 -- Add additional buttons for aimbot settings
-local AimbotKeyLabel = createTextLabel(MainPage, UDim2.new(0.1, 0, 0.1, 0), "Press a key to set Aimbot Toggle Key")
-local CurrentKeyLabel = createTextLabel(MainPage, UDim2.new(0.1, 0, 0.2, 0), "Current Aimbot Key: [Not Set]")
+local AimbotKeyLabel = Instance.new("TextLabel")
+AimbotKeyLabel.Size = UDim2.new(0, 300, 0, 50)
+AimbotKeyLabel.Position = UDim2.new(0.1, 0, 0.1, 0)
+AimbotKeyLabel.Text = "Press a key to set Aimbot Toggle Key"
+AimbotKeyLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+AimbotKeyLabel.Parent = MainPage
+
+local CurrentKeyLabel = Instance.new("TextLabel")
+CurrentKeyLabel.Size = UDim2.new(0, 300, 0, 50)
+CurrentKeyLabel.Position = UDim2.new(0.1, 0, 0.2, 0)
+CurrentKeyLabel.Text = "Current Aimbot Key: [Not Set]"
+CurrentKeyLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+CurrentKeyLabel.Parent = MainPage
 
 local selectedAimbotKey = nil
 
