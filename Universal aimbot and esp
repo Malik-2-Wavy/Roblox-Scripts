@@ -1,20 +1,24 @@
--- Create GUI
-local UserInputService = game:GetService("UserInputService")
+-- Settings
+local Teams = game:GetService("Teams")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
-local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+local UserInputService = game:GetService("UserInputService")
+local StarterGui = game:GetService("StarterGui")
 
--- Create GUI elements
+-- Check if we have a valid team system (optional, since not all games have teams)
+local myTeam = LocalPlayer.Team
+
+-- Create GUI
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "CheatGUI"
-ScreenGui.Parent = PlayerGui
+ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Size = UDim2.new(0, 300, 0, 400)
 MainFrame.Position = UDim2.new(0.5, -150, 0.5, -200)
 MainFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 MainFrame.Parent = ScreenGui
-MainFrame.Visible = false  -- Initially hidden
+MainFrame.Visible = false
 
 -- Buttons for each function
 local AimbotButton = Instance.new("TextButton")
@@ -29,24 +33,6 @@ ESPButton.Position = UDim2.new(0.5, -100, 0, 70)
 ESPButton.Text = "Toggle ESP"
 ESPButton.Parent = MainFrame
 
-local FlyButton = Instance.new("TextButton")
-FlyButton.Size = UDim2.new(0, 200, 0, 50)
-FlyButton.Position = UDim2.new(0.5, -100, 0, 130)
-FlyButton.Text = "Toggle Fly"
-FlyButton.Parent = MainFrame
-
-local SpeedButton = Instance.new("TextButton")
-SpeedButton.Size = UDim2.new(0, 200, 0, 50)
-SpeedButton.Position = UDim2.new(0.5, -100, 0, 190)
-SpeedButton.Text = "Toggle Speed"
-SpeedButton.Parent = MainFrame
-
-local NoclipButton = Instance.new("TextButton")
-NoclipButton.Size = UDim2.new(0, 200, 0, 50)
-NoclipButton.Position = UDim2.new(0.5, -100, 0, 250)
-NoclipButton.Text = "Toggle Noclip"
-NoclipButton.Parent = MainFrame
-
 -- Keybind for GUI Toggle (Press INS)
 local guiVisible = false
 UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
@@ -56,111 +42,100 @@ UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
     end
 end)
 
--- Variables for each feature's enabled state
-local aimbotEnabled = false
-local espEnabled = false
-local flyEnabled = false
-local speedEnabled = false
-local noclipEnabled = false
-
--- Aimbot
-local function aimbot()
-    while aimbotEnabled do
-        wait(0.1)
-        local closestEnemy = nil
-        local shortestDistance = math.huge
-        for _, player in pairs(Players:GetPlayers()) do
-            if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                local enemy = player.Character
-                local distance = (enemy.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+-- Helper function to find the closest enemy
+local function getClosestEnemy()
+    local closestEnemy = nil
+    local shortestDistance = math.huge
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            -- Only target enemies that are not on the same team
+            if player.Team ~= myTeam then
+                local distance = (player.Character.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
                 if distance < shortestDistance then
                     shortestDistance = distance
-                    closestEnemy = enemy
+                    closestEnemy = player.Character
                 end
             end
         end
-        if closestEnemy then
-            -- Aim at the closest enemy (head or torso)
-            LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(closestEnemy.HumanoidRootPart.Position)
-        end
     end
+    return closestEnemy
 end
 
+-- Aimbot
+local aimbotEnabled = false
 AimbotButton.MouseButton1Click:Connect(function()
     aimbotEnabled = not aimbotEnabled
     if aimbotEnabled then
-        aimbot()
-    end
-end)
-
--- ESP (Wallhacks to see players through walls)
-local function esp()
-    while espEnabled do
-        wait(0.1)
-        for _, player in pairs(Players:GetPlayers()) do
-            if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                -- Create ESP box
-                local espBox = Instance.new("BillboardGui")
-                espBox.Parent = player.Character.HumanoidRootPart
-                espBox.Size = UDim2.new(0, 10, 0, 10)
-                espBox.Adornee = player.Character.HumanoidRootPart
-                espBox.AlwaysOnTop = true
-                espBox.StudsOffset = Vector3.new(0, 2, 0)
-                espBox.Enabled = true
+        while aimbotEnabled do
+            wait(0.1)
+            local enemy = getClosestEnemy()
+            if enemy then
+                -- Aimbot: Aim at the enemy's HumanoidRootPart
+                LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(enemy.HumanoidRootPart.Position)
             end
         end
     end
+end)
+
+-- ESP (Wallhack)
+local espEnabled = false
+local function createESP(player)
+    local espBox = Instance.new("BillboardGui")
+    espBox.Parent = player.Character.HumanoidRootPart
+    espBox.Size = UDim2.new(0, 10, 0, 10)
+    espBox.Adornee = player.Character.HumanoidRootPart
+    espBox.AlwaysOnTop = true
+    espBox.StudsOffset = Vector3.new(0, 2, 0)
+    espBox.Enabled = true
 end
 
 ESPButton.MouseButton1Click:Connect(function()
     espEnabled = not espEnabled
     if espEnabled then
-        esp()
+        while espEnabled do
+            wait(0.1)
+            for _, player in pairs(Players:GetPlayers()) do
+                if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    if player.Team ~= myTeam then
+                        createESP(player)
+                    end
+                end
+            end
+        end
     end
 end)
 
--- Fly
-local function fly()
-    while flyEnabled do
-        wait(0.1)
-        LocalPlayer.Character.HumanoidRootPart.Velocity = Vector3.new(0, 50, 0)  -- Adds upward force
-    end
+-- Function to display notification
+local function sendNotification(title, text)
+    StarterGui:SetCore("SendNotification", {
+        Title = title;
+        Text = text;
+        Duration = 5;
+    })
 end
 
-FlyButton.MouseButton1Click:Connect(function()
-    flyEnabled = not flyEnabled
-    if flyEnabled then
-        fly()
-    end
-end)
+-- Notify user when the script is loaded successfully
+sendNotification("Script Loaded", "Have Fun using 21 Cheats!")
 
--- Speed
-local function speed()
-    while speedEnabled do
-        wait(0.1)
-        LocalPlayer.Character.Humanoid.WalkSpeed = 100  -- Set speed to 100 (default is 16)
-    end
-end
+-- Run the script and update it dynamically for changes
+-- This will make sure the script is dynamic for any in-game updates
 
-SpeedButton.MouseButton1Click:Connect(function()
-    speedEnabled = not speedEnabled
-    if speedEnabled then
-        speed()
-    end
-end)
-
--- Noclip
-local function noclip()
-    while noclipEnabled do
-        wait(0.1)
-        LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Physics)
-        LocalPlayer.Character.HumanoidRootPart.CanCollide = false
-    end
-end
-
-NoclipButton.MouseButton1Click:Connect(function()
-    noclipEnabled = not noclipEnabled
-    if noclipEnabled then
-        noclip()
+-- ESP cleanup for efficiency
+game:GetService("RunService").RenderStepped:Connect(function()
+    for _, player in pairs(Players:GetPlayers()) do
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local espPart = player.Character:FindFirstChild("ESPPart")
+            if not espPart then
+                local newESPPart = Instance.new("Part")
+                newESPPart.Name = "ESPPart"
+                newESPPart.Size = Vector3.new(1, 1, 1)
+                newESPPart.Anchored = true
+                newESPPart.CanCollide = false
+                newESPPart.Parent = player.Character
+                newESPPart.Transparency = 0.5
+                newESPPart.Color = Color3.fromRGB(255, 0, 0)
+                newESPPart.CFrame = player.Character.HumanoidRootPart.CFrame
+            end
+        end
     end
 end)
