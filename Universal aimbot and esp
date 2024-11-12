@@ -4,6 +4,9 @@ local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local StarterGui = game:GetService("StarterGui")
 local LocalPlayer = Players.LocalPlayer
+local Camera = game:GetService("Workspace").CurrentCamera
+local GuiService = game:GetService("GuiService")
+local TweenService = game:GetService("TweenService")
 
 -- Notification Function
 local function sendNotification(title, text, duration)
@@ -19,59 +22,78 @@ local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "CustomCheatGUI"
 ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
--- Create Main Frame
+-- Create Main Frame (With Rounded Corners and Background Image)
 local MainFrame = Instance.new("Frame")
 MainFrame.Size = UDim2.new(0, 400, 0, 500)
 MainFrame.Position = UDim2.new(0.5, -200, 0.5, -250)
-MainFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+MainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+MainFrame.BackgroundTransparency = 0.2
 MainFrame.Parent = ScreenGui
 MainFrame.Visible = false
 MainFrame.Active = true
 MainFrame.Draggable = true
 
 local UICorner = Instance.new("UICorner")
-UICorner.CornerRadius = UDim.new(0, 10)
+UICorner.CornerRadius = UDim.new(0, 15)
 UICorner.Parent = MainFrame
 
--- Title Label
-local TitleLabel = Instance.new("TextLabel")
-TitleLabel.Size = UDim2.new(1, 0, 0, 40)
-TitleLabel.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-TitleLabel.Text = "21 Cheats"
-TitleLabel.Font = Enum.Font.GothamBold
-TitleLabel.TextColor3 = Color3.new(1, 1, 1)
-TitleLabel.TextSize = 24
-TitleLabel.Parent = MainFrame
+-- Background Image (for a sleek look)
+local BackgroundImage = Instance.new("ImageLabel")
+BackgroundImage.Size = UDim2.new(1, 0, 1, 0)
+BackgroundImage.BackgroundTransparency = 1
+BackgroundImage.Image = "rbxassetid://1234567890"  -- Placeholder Image ID (you can set your own background image ID)
+BackgroundImage.Parent = MainFrame
 
 -- Create Tab Buttons Frame
 local TabFrame = Instance.new("Frame")
-TabFrame.Size = UDim2.new(1, 0, 0, 40)
-TabFrame.Position = UDim2.new(0, 0, 0, 40)
-TabFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+TabFrame.Size = UDim2.new(1, 0, 0, 50)
+TabFrame.Position = UDim2.new(0, 0, 0, 0)
+TabFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 TabFrame.Parent = MainFrame
 
-local function createTabButton(name, position)
+local function createTabButton(name, position, iconID)
     local Button = Instance.new("TextButton")
-    Button.Size = UDim2.new(0, 200, 0, 40)
+    Button.Size = UDim2.new(0, 200, 0, 50)
     Button.Position = position
     Button.Text = name
     Button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    Button.TextColor3 = Color3.new(1, 1, 1)
+    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
     Button.Font = Enum.Font.Gotham
     Button.TextSize = 16
+    Button.AutoButtonColor = false
+    Button.TextButtonMode = Enum.TextButtonMode.Auto
     Button.Parent = TabFrame
+
+    -- Add icon next to button text
+    local Icon = Instance.new("ImageLabel")
+    Icon.Size = UDim2.new(0, 20, 0, 20)
+    Icon.Position = UDim2.new(0, 10, 0, 15)
+    Icon.BackgroundTransparency = 1
+    Icon.Image = "rbxassetid://" .. iconID  -- You can use custom icons here
+    Icon.Parent = Button
+
+    -- Button Hover Effect
+    Button.MouseEnter:Connect(function()
+        TweenService:Create(Button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(60, 60, 60)}):Play()
+    end)
+
+    Button.MouseLeave:Connect(function()
+        TweenService:Create(Button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(40, 40, 40)}):Play()
+    end)
+
     return Button
 end
 
-local MainTabButton = createTabButton("Main (Aimbot)", UDim2.new(0, 0, 0, 0))
-local VisualTabButton = createTabButton("Visual (ESP)", UDim2.new(0, 200, 0, 0))
+-- Add icons and create buttons
+local MainTabButton = createTabButton("Main (Aimbot)", UDim2.new(0, 0, 0, 0), "1234567890")  -- Replace with actual icon ID
+local VisualTabButton = createTabButton("Visual (ESP)", UDim2.new(0, 200, 0, 0), "0987654321")  -- Replace with actual icon ID
 
--- Create Tab Pages
+-- Create Tab Pages (Improved Style)
 local function createPage(parent, visible)
     local Page = Instance.new("Frame")
-    Page.Size = UDim2.new(1, 0, 1, -80)
-    Page.Position = UDim2.new(0, 0, 0, 80)
-    Page.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    Page.Size = UDim2.new(1, 0, 1, -50)
+    Page.Position = UDim2.new(0, 0, 0, 50)
+    Page.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     Page.Visible = visible
     Page.Parent = parent
     return Page
@@ -91,26 +113,13 @@ VisualTabButton.MouseButton1Click:Connect(function()
     VisualPage.Visible = true
 end)
 
--- Main Tab Content for Aimbot
-local function createTextLabel(parent, position, text)
-    local Label = Instance.new("TextLabel")
-    Label.Size = UDim2.new(0, 300, 0, 30)
-    Label.Position = position
-    Label.Text = text
-    Label.TextColor3 = Color3.new(1, 1, 1)
-    Label.Font = Enum.Font.Gotham
-    Label.TextSize = 14
-    Label.BackgroundTransparency = 1
-    Label.Parent = parent
-    return Label
-end
-
+-- Add additional buttons for aimbot settings
 local AimbotKeyLabel = createTextLabel(MainPage, UDim2.new(0.1, 0, 0.1, 0), "Press a key to set Aimbot Toggle Key")
 local CurrentKeyLabel = createTextLabel(MainPage, UDim2.new(0.1, 0, 0.2, 0), "Current Aimbot Key: [Not Set]")
 
 local selectedAimbotKey = nil
 
--- Setting the Aimbot Toggle Key
+-- Set the Aimbot Toggle Key
 UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
     if MainPage.Visible and not gameProcessedEvent then
         selectedAimbotKey = input.KeyCode
@@ -118,7 +127,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
     end
 end)
 
--- Aimbot Logic with Customizable Key
+-- Aimbot Logic
 local aimbotEnabled = false
 UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
     if input.KeyCode == selectedAimbotKey and not gameProcessedEvent then
@@ -127,7 +136,38 @@ UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
     end
 end)
 
--- GUI Visibility Toggle (Insert Key)
+-- ESP (Enhanced) Logic
+local function drawESP(player)
+    if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return end
+
+    local box = Instance.new("BoxHandleAdornment")
+    box.Size = player.Character.HumanoidRootPart.Size * 1.5
+    box.CFrame = player.Character.HumanoidRootPart.CFrame
+    box.Color3 = Color3.fromRGB(255, 0, 0)  -- Red Box
+    box.Adornee = player.Character
+    box.Parent = game.Workspace
+
+    -- Additional ESP checks for Alive, God Mode, etc.
+    if player:FindFirstChild("Humanoid") then
+        local humanoid = player.Humanoid
+        if humanoid.Health <= 0 then
+            box.Color3 = Color3.fromRGB(0, 0, 255)  -- Blue for Dead
+        elseif humanoid.Health > humanoid.MaxHealth then
+            box.Color3 = Color3.fromRGB(255, 255, 0)  -- Yellow for God Mode
+        end
+    end
+end
+
+-- Update ESP for all players in each frame
+RunService.Heartbeat:Connect(function()
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            drawESP(player)
+        end
+    end
+end)
+
+-- Add Toggle for GUI
 local guiVisible = false
 UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
     if input.KeyCode == Enum.KeyCode.Insert and not gameProcessedEvent then
@@ -136,14 +176,6 @@ UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
         sendNotification("GUI Toggle", guiVisible and "GUI Shown" or "GUI Hidden")
     end
 end)
-
--- Visual (ESP) Features Placeholder
-local function createVisualFeature()
-    -- Placeholder for ESP functionality (e.g., player outlines, distance lines, boxes)
-    createTextLabel(VisualPage, UDim2.new(0.1, 0, 0.1, 0), "ESP Features Coming Soon...")
-end
-
-createVisualFeature()
 
 -- Notify Script Load Success
 sendNotification("Script Loaded", "Welcome! Use Insert key to toggle GUI.")
