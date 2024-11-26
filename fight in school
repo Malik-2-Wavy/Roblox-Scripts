@@ -1,0 +1,222 @@
+-- Place this script in a LocalScript inside StarterPlayer -> StarterPlayerScripts
+
+local Players = game:GetService("Players")
+local Teams = game:GetService("Teams")
+local workspace = game:GetService("Workspace")
+local localPlayer = Players.LocalPlayer
+local localTeam = nil
+
+-- Customization Options
+local highlightColor = Color3.fromRGB(255, 0, 0) -- Red for the highlight box
+local nameTagColor = Color3.fromRGB(0, 0, 0) -- Black for name tag background
+local nameTextColor = Color3.fromRGB(255, 255, 255) -- White for name text
+local connectedLineColor = Color3.fromRGB(0, 255, 0) -- Green for connected lines
+local fovCircleColor = Color3.fromRGB(0, 0, 255) -- Blue for FOV circle
+
+local fovRadius = 100 -- Radius of the FOV circle
+local fovTransparency = 0.2 -- Transparency of the FOV circle
+local fovThickness = 2 -- Border thickness for the FOV circle
+
+local walkSpeedMultiplier = 1.5 -- Walk speed multiplier
+local fightSpeedMultiplier = 1.5 -- Fight speed multiplier
+local hitboxSize = Vector3.new(5, 5, 5) -- Size of the hitbox (customizable)
+local headTargetingOnly = true -- Ensure only the head is targeted for attacks
+
+-- Function to create a highlight, name tag, and connected line
+local function createHighlightWithNameTag(player)
+    if player.Character and player.Character:FindFirstChild("Head") then
+        local head = player.Character.Head
+        
+        -- Ensure the player doesn't already have a BillboardGui
+        if not head:FindFirstChild("BillboardGui") then
+            -- Create a BillboardGui for highlighting
+            local billboardGui = Instance.new("BillboardGui")
+            billboardGui.Name = "HighlightGui"
+            billboardGui.Size = UDim2.new(2, 0, 2, 0)
+            billboardGui.Adornee = head
+            billboardGui.AlwaysOnTop = true
+            billboardGui.Parent = head
+
+            -- Create the frame around the enemy player
+            local frame = Instance.new("Frame")
+            frame.Size = UDim2.new(1, 0, 1, 0)
+            frame.BackgroundColor3 = highlightColor
+            frame.BackgroundTransparency = 0.5
+            frame.BorderSizePixel = 3
+            frame.BorderColor3 = Color3.new(0, 0, 0) -- Black border
+            frame.Parent = billboardGui
+            
+            -- Create the name tag box below the player
+            local nameTagFrame = Instance.new("Frame")
+            nameTagFrame.Size = UDim2.new(0, 100, 0, 20) -- Adjust the width and height of the name box
+            nameTagFrame.Position = UDim2.new(0, -50, 0, 30) -- Positioning it below the head
+            nameTagFrame.BackgroundColor3 = nameTagColor
+            nameTagFrame.BorderSizePixel = 2
+            nameTagFrame.BorderColor3 = Color3.new(1, 1, 1) -- White border for the name tag box
+            nameTagFrame.Parent = billboardGui
+            
+            -- Create the player's name text inside the name tag
+            local nameLabel = Instance.new("TextLabel")
+            nameLabel.Size = UDim2.new(1, 0, 1, 0)
+            nameLabel.BackgroundTransparency = 1
+            nameLabel.Text = player.Name
+            nameLabel.TextColor3 = nameTextColor
+            nameLabel.TextSize = 14
+            nameLabel.TextStrokeTransparency = 0.8 -- Adds a stroke to the text for better visibility
+            nameLabel.TextAlign = Enum.TextAlign.Center
+            nameLabel.Parent = nameTagFrame
+            
+            -- Create a line connecting the player to the enemy
+            local line = Instance.new("Part")
+            line.Size = Vector3.new(0.2, 0.2, 0.2)
+            line.Color = connectedLineColor
+            line.Anchored = true
+            line.CanCollide = false
+            line.Parent = workspace
+            
+            -- Update the line position to connect this player with the local player
+            local function updateLine()
+                if player.Character and localPlayer.Character then
+                    local playerPos = player.Character.HumanoidRootPart.Position
+                    local localPlayerPos = localPlayer.Character.HumanoidRootPart.Position
+                    line.Size = Vector3.new(0.2, 0.2, (playerPos - localPlayerPos).Magnitude)
+                    line.CFrame = CFrame.new((playerPos + localPlayerPos) / 2, playerPos)
+                end
+            end
+            
+            -- Update line when player moves or when the character is loaded
+            player.CharacterAdded:Connect(function()
+                task.wait(1) -- Wait for the character to load
+                updateLine()
+            end)
+            
+            -- Update line every frame
+            game:GetService("RunService").Heartbeat:Connect(updateLine)
+        end
+    end
+end
+
+-- Remove highlights, name tags, and lines when necessary
+local function removeHighlight(player)
+    if player.Character and player.Character:FindFirstChild("Head") then
+        local head = player.Character.Head
+        local gui = head:FindFirstChild("HighlightGui")
+        if gui then
+            gui:Destroy()
+        end
+        
+        -- Remove connected line
+        for _, part in pairs(workspace:GetChildren()) do
+            if part:IsA("Part") and part.Color == connectedLineColor then
+                part:Destroy()
+            end
+        end
+    end
+end
+
+-- Check the player's team and add/remove highlights, name tags, and lines
+local function updateHighlights()
+    localTeam = localPlayer.Team -- Get the local player's team
+
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= localPlayer then
+            if player.Team ~= localTeam then
+                -- Player is not on the same team, add highlight and name tag
+                createHighlightWithNameTag(player)
+            else
+                -- Player is on the same team, remove highlight and name tag
+                removeHighlight(player)
+            end
+        end
+    end
+end
+
+-- Update highlights when teams change or players join/leave
+local function onPlayerAdded(player)
+    player:GetPropertyChangedSignal("Team"):Connect(updateHighlights)
+    player.CharacterAdded:Connect(function()
+        task.wait(1) -- Wait for the character to load
+        updateHighlights()
+    end)
+end
+
+-- Connect events
+Players.PlayerAdded:Connect(onPlayerAdded)
+Players.PlayerRemoving:Connect(updateHighlights)
+localPlayer:GetPropertyChangedSignal("Team"):Connect(updateHighlights)
+
+-- Initial setup
+updateHighlights()
+
+-- FOV Circle GUI Setup
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = localPlayer.PlayerGui
+
+local fovCircle = Instance.new("Frame")
+fovCircle.Size = UDim2.new(0, fovRadius * 2, 0, fovRadius * 2)
+fovCircle.Position = UDim2.new(0.5, -fovRadius, 0.5, -fovRadius) -- Center the circle
+fovCircle.BackgroundColor3 = fovCircleColor
+fovCircle.BackgroundTransparency = fovTransparency
+fovCircle.BorderSizePixel = fovThickness
+fovCircle.BorderColor3 = Color3.new(1, 1, 1) -- White border around the FOV circle
+fovCircle.Parent = screenGui
+
+-- Customizable hitbox
+local function createHitbox()
+    local hitbox = Instance.new("Part")
+    hitbox.Size = hitboxSize -- Customizable hitbox size
+    hitbox.Position = localPlayer.Character.HumanoidRootPart.Position
+    hitbox.Anchored = true
+    hitbox.CanCollide = false
+    hitbox.Parent = workspace
+    
+    -- Detect enemies in the hitbox
+    local function onHitboxTouch(other)
+        if other and other.Parent then
+            local enemy = Players:GetPlayerFromCharacter(other.Parent)
+            if enemy and enemy.Team ~= localTeam then
+                -- Only trigger if the enemy is within range and in the opposing team
+                print("Hit enemy: " .. enemy.Name)
+            end
+        end
+    end
+    
+    hitbox.Touched:Connect(onHitboxTouch)
+    return hitbox
+end
+
+-- Create the hitbox
+local hitbox = createHitbox()
+
+-- Add walk speed multiplier
+local function applyWalkSpeed()
+    localPlayer.Character.Humanoid.WalkSpeed = 16 * walkSpeedMultiplier
+end
+
+-- Apply walk speed on character load
+localPlayer.CharacterAdded:Connect(function()
+    task.wait(1) -- Wait for the character to load
+    applyWalkSpeed()
+end)
+
+-- Add a speed multiplier for fighting
+local function applyFightSpeed()
+    -- Assume you have an animation or attack function where you can apply a speed multiplier
+    -- Example for animations or attacks: 
+    -- humanoid:PlayAnimation(attackAnimation)
+    -- Adjust animation speed based on the multiplier
+end
+
+-- Unlock all features for players on the same team
+local function unlockAllForTeam()
+    for _, player in pairs(Players:GetPlayers()) do
+        if player.Team == localTeam then
+            -- Unlock all features for players on the same team
+            print("Unlocking all for: " .. player.Name)
+            -- Add additional unlock logic here (weapons, abilities, etc.)
+        end
+    end
+end
+
+-- Trigger unlock all when necessary (e.g., when a specific condition is met)
+unlockAllForTeam()
